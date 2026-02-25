@@ -1,0 +1,6 @@
+@CareMetrics.API_HostAddress = http://localhost:5088
+
+GET {{CareMetrics.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
