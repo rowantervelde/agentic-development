@@ -1,0 +1,53 @@
+# .NET / C#
+
+## Build outputs
+bin/
+obj/
+
+## NuGet packages
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+## User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docobj
+
+## Visual Studio / Rider
+.vs/
+.idea/
+*.rsuser
+
+## VS Code - ignore personal/machine-specific settings, but track shared configs
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+
+## Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+## Publish output
+publish/
+**/publish/
+
+## Logs
+logs/
+*.log
+
+## OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## Secrets / environment
+*.env
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json

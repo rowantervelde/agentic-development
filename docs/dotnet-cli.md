@@ -44,6 +44,12 @@ Run using a specific launch profile:
 dotnet run --launch-profile https
 ```
 
+## Run from VS Code
+1. Open the project in VS Code.
+2. Select the project folder in the Explorer pane.
+3. Press `F5` to start debugging (or `Ctrl + F5` to run without debugging).
+4. Choose the appropriate launch profile (e.g., `https`) if prompted
+
 ## Swagger / OpenAPI
 
 The only configuration needed is the built-in OpenAPI support.
