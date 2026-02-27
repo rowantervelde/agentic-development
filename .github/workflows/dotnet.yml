@@ -21,4 +21,18 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
       - name: Test
-        run: dotnet test --no-build --configuration Release --verbosity normal
+        run: |
+          dotnet test --no-build --configuration Release --verbosity normal \
+            --logger "trx;LogFileName=test_results.trx" \
+            --results-directory TestResults
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: TestResults/
+      - name: Publish test summary
+        uses: dorny/test-reporter@v1
+        with:
+          name: dotnet-test
+          path: TestResults/*.trx
+          reporter: dotnet-trx
