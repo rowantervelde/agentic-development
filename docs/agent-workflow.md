@@ -1,0 +1,1 @@
+gh aw add-wizard githubnext/agentics/daily-repo-status
