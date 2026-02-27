@@ -1,5 +1,9 @@
 name: .NET CI
 
+permissions:
+  contents: read
+  checks: write
+
 on:
   push:
     branches: ["main", "master"]
