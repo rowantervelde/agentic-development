@@ -1,4 +1,8 @@
 using CareMetrics.API.Models;
+using CsvHelper;
+using Microsoft.Extensions.Configuration;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace CareMetrics.API.Services;
 
@@ -66,9 +70,86 @@ public class VektisDataService : IVektisDataService
         ["Zwolle"] = ["800", "801"]
     };
 
+    // Parameterless constructor kept for unit tests or simple instantiation.
     public VektisDataService()
+        : this(null, null)
     {
-        _data = GenerateMockData();
+    }
+
+    /// <summary>
+    /// Primary constructor used by DI. Reads configuration values to determine
+    /// whether to load a real Vektis CSV (local path or remote URL) or to
+    /// fall back to the built‑in mock generator used during development.
+    /// </summary>
+    public VektisDataService(IConfiguration? configuration, IHttpClientFactory? httpClientFactory)
+    {
+        // configuration might be null in some test scenarios
+        var csvPath = configuration?["Vektis:CsvPath"];
+        var csvUrl = configuration?["Vektis:CsvUrl"];
+
+        if (!string.IsNullOrWhiteSpace(csvPath))
+        {
+            if (Directory.Exists(csvPath))
+            {
+                _data = LoadFromDirectory(csvPath);
+            }
+            else if (File.Exists(csvPath))
+            {
+                _data = LoadFromCsv(csvPath);
+            }
+            else
+            {
+                // path specified but not found, log or throw? we'll fallback
+                _data = GenerateMockData();
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(csvUrl) && httpClientFactory != null)
+        {
+            // attempt to download asynchronously and block; data size is
+            // modest (<100MB) for a single request so this is fine during
+            // startup.
+            _data = LoadFromUrlAsync(csvUrl, httpClientFactory).GetAwaiter().GetResult();
+        }
+        else
+        {
+            // fall back to deterministic mock data so the application still
+            // works out of the box without any configuration.
+            _data = GenerateMockData();
+        }
+    }
+
+    /// <summary>
+    /// Generates a small set of deterministic records for development and
+    /// unit tests.  A real Vektis CSV file can replace this entire method.
+    /// </summary>
+
+    private static List<VektisRecord> LoadFromCsv(string path)
+    {
+        return VektisCsvParser.ParseFile(path);
+    }
+
+    private static List<VektisRecord> LoadFromDirectory(string directory)
+    {
+        return VektisCsvParser.ParseDirectory(directory);
+    }
+
+    private static async Task<List<VektisRecord>> LoadFromUrlAsync(string url, IHttpClientFactory httpClientFactory)
+    {
+        // download to a temp file, parse, then delete
+        using var client = httpClientFactory.CreateClient();
+        var tempPath = Path.GetTempFileName();
+        try
+        {
+            using var stream = await client.GetStreamAsync(url);
+            using var fs = File.Create(tempPath);
+            await stream.CopyToAsync(fs);
+            fs.Close();
+            return VektisCsvParser.ParseFile(tempPath);
+        }
+        finally
+        {
+            if (File.Exists(tempPath)) File.Delete(tempPath);
+        }
     }
 
     private static List<VektisRecord> GenerateMockData()
@@ -143,9 +224,13 @@ public class VektisDataService : IVektisDataService
     public List<CostSummary> GetCostsByMunicipality(string municipality)
     {
         var norm = municipality.Trim();
+
+        if (_data.Count == 0)
+            return new List<CostSummary>();
+        var maxYear = _data.Max(r => r.Year);
         return _data
             .Where(r => r.Municipality.Equals(norm, StringComparison.OrdinalIgnoreCase)
-                     && r.Year == _data.Max(x => x.Year))
+                     && r.Year == maxYear)
             .GroupBy(r => r.CareType)
             .Select(g => new CostSummary(
                 Municipality: norm,
