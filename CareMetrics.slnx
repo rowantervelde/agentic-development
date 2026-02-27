@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="CareMetrics.API/CareMetrics.API.csproj" />
+  <Project Path="CareMetrics.Tests/CareMetrics.Tests.csproj" />
 </Solution>

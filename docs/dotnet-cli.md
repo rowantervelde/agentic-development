@@ -22,6 +22,22 @@ dotnet new webapi -n CareMetrics.API
 dotnet sln CareMetrics.slnx add CareMetrics.API/CareMetrics.API.csproj
 ```
 
+## New Project / Solution
+
+```bash
+dotnet new sln -n CareMetrics
+dotnet new webapi -n CareMetrics.API
+dotnet sln CareMetrics.slnx add CareMetrics.API/CareMetrics.API.csproj
+```
+
+Add a unit test project (xUnit):
+
+```bash
+dotnet new xunit -n CareMetrics.Tests
+dotnet sln CareMetrics.slnx add CareMetrics.Tests/CareMetrics.Tests.csproj
+dotnet add CareMetrics.Tests/CareMetrics.Tests.csproj reference CareMetrics.API/CareMetrics.API.csproj
+```
+
 ## Packages
 
 ### Install a Package
