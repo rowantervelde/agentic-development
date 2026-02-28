@@ -12,7 +12,7 @@ permissions:
   pull-requests: read
 
 tracker-id: daily-testify-uber-super-expert
-engine: codex
+engine: copilot
 
 imports:
   - shared/reporting.md
