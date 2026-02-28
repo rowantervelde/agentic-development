@@ -1,13 +1,17 @@
-# Plan: Add CareMetrics Controller with 5 Endpoints
+# Plan: Add CareMetrics Controller with 7 Endpoints
+
+> **Status: Completed** — All steps below have been implemented.
+> The controller, service, models, and CSV ingestion are fully wired up.
 
 ## Summary
 
-The project is a clean .NET 10 minimal API scaffold. This plan adds a
-controller-based layer, wires up a data service backed by Vektis-shaped
-in-memory mock data, and exposes 5 endpoints under `/api/costs`,
-`/api/demographics`, `/api/compare`, and `/api/hotspots`.
-The mock data mirrors the real Vektis Open Data CSV schema so a live CSV
-file can be swapped in later with minimal changes.
+The project is a clean .NET 10 minimal API scaffold. This plan added a
+controller-based layer, wired up a data service backed by Vektis CSV data,
+and exposed 7 endpoints under `/api/costs`, `/api/demographics`,
+`/api/compare`, `/api/hotspots`, and `/api/metadata`.
+The service loads real Vektis Open Data CSVs via configuration
+(`Vektis:CsvPath` or `Vektis:CsvUrl`) and falls back to seed data when
+no CSV is configured.
 
 ---
 
@@ -50,35 +54,37 @@ file can be swapped in later with minimal changes.
    | GET | `/api/demographics/{ageGroup}/{gender}` | Usage patterns by age + gender |
    | GET | `/api/compare/regions?type={careType}` | Side-by-side regional comparison |
    | GET | `/api/hotspots/topN?n=10&metric=costs` | Top-N most expensive postcodes |
+   | GET | `/api/metadata/municipalities` | List all available municipalities |
+   | GET | `/api/metadata/caretypes` | List all available care types |
 
-7. **Seed realistic mock data** in `VektisDataService`
-   - ~500–1000 `VektisRecord` rows
+7. **Seed data + real CSV ingestion** in `VektisDataService`
+   - Seed data provides ~500–1000 `VektisRecord` rows for demo use
    - Multiple years (2019–2023), municipalities, care types, demographics
-   - (Later) allow swapping in a real Vektis CSV via configuration (`Vektis:CsvPath` or `Vektis:CsvUrl`)
-      so that production apps can ingest the actual dataset instead of generated values
-      *The path can also be a directory containing multiple CSVs (useful after
-      downloading the full archive with the script).
+   - Real Vektis CSVs can be loaded via `Vektis:CsvPath` or `Vektis:CsvUrl`
+     configuration; the path can be a directory containing multiple CSVs
+     (useful after downloading the full archive with the script)
 
-8. **Verify Swagger UI** at `/swagger` shows all 5 routes with parameters
+8. **Verify Swagger UI** at `/swagger` shows all 7 routes with parameters
 
 ---
 
 ## Verification
 
 - `dotnet build` — zero errors
-- `/swagger` — all 5 endpoints visible and documented
+- `/swagger` — all 7 endpoints visible and documented
 - `/api/hotspots/topN?n=5&metric=costs` — returns top 5 postcode areas
 - `/api/costs/trend/huisartsenzorg?years=3` — returns 3-year GP cost trend
+- `/api/metadata/municipalities` — returns all known municipalities
+- `/api/metadata/caretypes` — returns all known care types
 
 ---
 
 ## Decisions
 
 - **Controller over minimal API groups** — explicitly requested
-- **Mock data over live CSV download** — removes runtime file dependency
-  in demo; Vektis schema preserved for easy swap-in.  The service also supports
-  reading a real CSV when pointed to one via configuration, making the switch
-  trivial once a dataset has been downloaded.
+- **Seed data + live CSV support** — seed data removes runtime file
+  dependency in demo; the service also loads real Vektis CSVs when pointed
+  to a file or directory via `Vektis:CsvPath` or `Vektis:CsvUrl`.
 - **Singleton `VektisDataService`** — data is read-only/static in demo
 
 ### Downloading real data
