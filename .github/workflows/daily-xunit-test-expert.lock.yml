@@ -34,7 +34,7 @@
 name: "Daily xUnit Test Quality Expert"
 "on":
   schedule:
-  - cron: "16 16 * * *"
+  - cron: "22 10 * * *"
     # Friendly format: daily (scattered)
   # skip-if-match: is:issue is:open in:title "[xunit-expert]" # Skip-if-match processed as search check in pre-activation job
   workflow_dispatch:
@@ -86,7 +86,7 @@ jobs:
       - name: Check workflow file timestamps
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
-          GH_AW_WORKFLOW_FILE: "daily-testify-uber-super-expert.lock.yml"
+          GH_AW_WORKFLOW_FILE: "daily-xunit-test-expert.lock.yml"
         with:
           script: |
             const { setupGlobals } = require('/opt/gh-aw/actions/setup_globals.cjs');
@@ -162,7 +162,7 @@ jobs:
           {{#runtime-import shared/mcp/serena-csharp.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF'
-          {{#runtime-import .github/workflows/daily-testify-uber-super-expert.md}}
+          {{#runtime-import .github/workflows/daily-xunit-test-expert.md}}
           GH_AW_PROMPT_EOF
           } > "$GH_AW_PROMPT"
       - name: Interpolate variables and render templates
@@ -256,7 +256,7 @@ jobs:
       GH_AW_SAFE_OUTPUTS: /opt/gh-aw/safeoutputs/outputs.jsonl
       GH_AW_SAFE_OUTPUTS_CONFIG_PATH: /opt/gh-aw/safeoutputs/config.json
       GH_AW_SAFE_OUTPUTS_TOOLS_PATH: /opt/gh-aw/safeoutputs/tools.json
-      GH_AW_WORKFLOW_ID_SANITIZED: dailytestifyubersuperexpert
+      GH_AW_WORKFLOW_ID_SANITIZED: dailyxunittestexpert
     outputs:
       checkout_pr_success: ${{ steps.checkout-pr.outputs.checkout_pr_success || 'true' }}
       detection_conclusion: ${{ steps.detection_conclusion.outputs.conclusion }}
@@ -1081,7 +1081,7 @@ jobs:
           GH_AW_TRACKER_ID: "daily-xunit-test-expert"
           GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GH_AW_AGENT_CONCLUSION: ${{ needs.agent.result }}
-          GH_AW_WORKFLOW_ID: "daily-testify-uber-super-expert"
+          GH_AW_WORKFLOW_ID: "daily-xunit-test-expert"
           GH_AW_SECRET_VERIFICATION_RESULT: ${{ needs.activation.outputs.secret_verification_result }}
           GH_AW_CHECKOUT_PR_SUCCESS: ${{ needs.agent.outputs.checkout_pr_success }}
           GH_AW_REPO_MEMORY_VALIDATION_FAILED_default: ${{ needs.push_repo_memory.outputs.validation_failed_default }}
@@ -1221,7 +1221,7 @@ jobs:
     env:
       GH_AW_ENGINE_ID: "copilot"
       GH_AW_TRACKER_ID: "daily-xunit-test-expert"
-      GH_AW_WORKFLOW_ID: "daily-testify-uber-super-expert"
+      GH_AW_WORKFLOW_ID: "daily-xunit-test-expert"
       GH_AW_WORKFLOW_NAME: "Daily xUnit Test Quality Expert"
     outputs:
       code_push_failure_count: ${{ steps.process_safe_outputs.outputs.code_push_failure_count }}
