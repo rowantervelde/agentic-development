@@ -1,7 +1,6 @@
 ---
 timeout-minutes: 5
 strict: true
-inlined-imports: true
 on:
   schedule: "0 14 * * 1-5"
   workflow_dispatch:
@@ -18,6 +17,7 @@ safe-outputs:
   add-comment: {}
 imports:
   - shared/reporting.md
+inlined-imports: true
 source: github/gh-aw/.github/workflows/issue-triage-agent.md@9cbca3cd9be433a23a38e4da332635097fd40251
 engine: copilot
 ---

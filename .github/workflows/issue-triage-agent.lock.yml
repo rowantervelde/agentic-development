@@ -30,10 +30,9 @@
 #
 # inlined-imports: true
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"ed7e3bb1b19fbf6cb7f14437fb9387a467237eac49ec3f6a9f2bc69ae3457a9e","compiler_version":"v0.50.7"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"134868756b7cf26046befbce724d4058f3a8d71b66935d0aead55ca61f9288b9","compiler_version":"v0.50.7"}
 
 name: "Issue Triage Agent"
-inlined-imports: true
 "on":
   schedule:
   - cron: "0 14 * * 1-5"
