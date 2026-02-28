@@ -43,9 +43,6 @@ tools:
 
 timeout-minutes: 20
 strict: true
-features:
-  copilot-requests: true
-source: github/gh-aw/.github/workflows/daily-testify-uber-super-expert.md@9cbca3cd9be433a23a38e4da332635097fd40251
 ---
 
 {{#runtime-import? .github/shared-instructions.md}}
