@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 permissions:
   issues: read
+  contents: read
 tools:
   github:
     # For now we are enabling lockdown mode for this workflow since it processes issues from the public repo and we want to ensure it only processes trusted input from maintainers.
@@ -17,7 +18,6 @@ safe-outputs:
   add-comment: {}
 imports:
   - shared/reporting.md
-inlined-imports: true
 source: github/gh-aw/.github/workflows/issue-triage-agent.md@9cbca3cd9be433a23a38e4da332635097fd40251
 engine: copilot
 ---

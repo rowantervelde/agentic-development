@@ -28,9 +28,7 @@
 #   Imports:
 #     - shared/reporting.md
 #
-# inlined-imports: true
-#
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"134868756b7cf26046befbce724d4058f3a8d71b66935d0aead55ca61f9288b9","compiler_version":"v0.50.7"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"c72cd3d0db9fcc8300d2e3c29ccf449f0d0c5903e0b530c59cb4221d1e2e32f0","compiler_version":"v0.50.7"}
 
 name: "Issue Triage Agent"
 "on":
@@ -72,6 +70,14 @@ jobs:
             setupGlobals(core, github, context, exec, io);
             const { main } = require('/opt/gh-aw/actions/validate_context_variables.cjs');
             await main();
+      - name: Checkout .github and .agents folders
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          sparse-checkout: |
+            .github
+            .agents
+          fetch-depth: 1
+          persist-credentials: false
       - name: Check workflow file timestamps
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
@@ -144,74 +150,7 @@ jobs:
           {{#runtime-import shared/reporting.md}}
           GH_AW_PROMPT_EOF
           cat << 'GH_AW_PROMPT_EOF'
-          # Issue Triage Agent
-          
-          List open issues in __GH_AW_GITHUB_REPOSITORY__ that have no labels. For each unlabeled issue, analyze the title and body, then add one of the allowed labels: `bug`, `feature`, `enhancement`, `documentation`, `question`, `help-wanted`, or `good-first-issue`, `community`.
-          
-          Skip issues that:
-          - Already have any of these labels
-          - Have been assigned to any user (especially non-bot users)
-          
-          After adding the label to an issue, mention the issue author in a comment using this format (follow shared/reporting.md guidelines):
-          
-          **Comment Template**:
-          ```markdown
-          ### 🏷️ Issue Triaged
-          
-          Hi @{author}! I've categorized this issue as **{label_name}** based on the following analysis:
-          
-          **Reasoning**: {brief_explanation_of_why_this_label}
-          
-          <details>
-          <summary><b>View Triage Details</b></summary>
-          
-          #### Analysis
-          - **Keywords detected**: {list_of_keywords_that_matched}
-          - **Issue type indicators**: {what_made_this_fit_the_category}
-          - **Confidence**: {High/Medium/Low}
-          
-          #### Recommended Next Steps
-          - {context_specific_suggestion_1}
-          - {context_specific_suggestion_2}
-          
-          </details>
-          
-          **References**: [Triage run §{run_id}](https://github.com/github/gh-aw/actions/runs/{run_id})
-          ```
-          
-          **Key formatting requirements**:
-          - Use h3 (###) for the main heading
-          - Keep reasoning visible for quick understanding
-          - Wrap detailed analysis in `<details>` tags
-          - Include workflow run reference
-          - Keep total comment concise (collapsed details prevent noise)
-          
-          ## Batch Comment Optimization
-          
-          For efficiency, if multiple issues are triaged in a single run:
-          1. Add individual labels to each issue
-          2. Add a brief comment to each issue (using the template above)
-          3. Optionally: Create a discussion summarizing all triage actions for that run
-          
-          This provides both per-issue context and batch visibility.
-          
-          ## Labels
-          
-          - `bug`: Indicates a problem or error in the code that needs fixing.
-          - `feature`: Represents a new feature request or enhancement to existing functionality.
-          - `enhancement`: Suggests improvements to existing features or code.
-          - `documentation`: Pertains to issues related to documentation, such as missing or unclear docs.
-          - `question`: Used for issues that are asking for clarification or have questions about the project.
-          - `help-wanted`: Indicates that the issue is a good candidate for external contributions and help
-          - `good-first-issue`: Marks issues that are suitable for newcomers to the project, often with simpler scope.
-          - `community`: Indicates that the issue is related to community engagement, such as events, discussions, or contributions that don't fit into the other categories. From authors who are not contributors to the codebase but are engaging with the project in other ways.
-          
-          **Important**: If no action is needed after completing your analysis, you **MUST** call the `noop` safe-output tool with a brief explanation. Failing to call any safe-output tool is the most common cause of safe-output workflow failures.
-          
-          ```json
-          {"noop": {"message": "No action needed: [brief explanation of what was analyzed and why]"}}
-          ```
-          
+          {{#runtime-import .github/workflows/issue-triage-agent.md}}
           GH_AW_PROMPT_EOF
           } > "$GH_AW_PROMPT"
       - name: Interpolate variables and render templates
@@ -278,8 +217,8 @@ jobs:
     needs: activation
     runs-on: ubuntu-latest
     permissions:
-          contents: read
-          issues: read
+      contents: read
+      issues: read
     concurrency:
       group: "gh-aw-copilot-${{ github.workflow }}"
     env:
@@ -293,6 +232,7 @@ jobs:
       GH_AW_SAFE_OUTPUTS_TOOLS_PATH: /opt/gh-aw/safeoutputs/tools.json
       GH_AW_WORKFLOW_ID_SANITIZED: issuetriageagent
     outputs:
+      checkout_pr_success: ${{ steps.checkout-pr.outputs.checkout_pr_success || 'true' }}
       detection_conclusion: ${{ steps.detection_conclusion.outputs.conclusion }}
       detection_success: ${{ steps.detection_conclusion.outputs.success }}
       has_patch: ${{ steps.collect_output.outputs.has_patch }}
@@ -322,6 +262,20 @@ jobs:
           SERVER_URL_STRIPPED="${SERVER_URL#https://}"
           git remote set-url origin "https://x-access-token:${{ github.token }}@${SERVER_URL_STRIPPED}/${REPO_NAME}.git"
           echo "Git configured with standard GitHub Actions identity"
+      - name: Checkout PR branch
+        id: checkout-pr
+        if: |
+          (github.event.pull_request) || (github.event.issue.pull_request)
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          GH_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+        with:
+          github-token: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          script: |
+            const { setupGlobals } = require('/opt/gh-aw/actions/setup_globals.cjs');
+            setupGlobals(core, github, context, exec, io);
+            const { main } = require('/opt/gh-aw/actions/checkout_pr_branch.cjs');
+            await main();
       - name: Generate agentic run info
         id: generate_aw_info
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
@@ -1064,6 +1018,7 @@ jobs:
           GH_AW_AGENT_CONCLUSION: ${{ needs.agent.result }}
           GH_AW_WORKFLOW_ID: "issue-triage-agent"
           GH_AW_SECRET_VERIFICATION_RESULT: ${{ needs.activation.outputs.secret_verification_result }}
+          GH_AW_CHECKOUT_PR_SUCCESS: ${{ needs.agent.outputs.checkout_pr_success }}
           GH_AW_GROUP_REPORTS: "false"
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
