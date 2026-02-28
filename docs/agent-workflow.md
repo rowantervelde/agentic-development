@@ -35,3 +35,13 @@ gh aw run daily-repo-status
 ```
 
 After waiting for the workflow to complete, check the new issue created with your updated report!
+
+## Costs & Usage Tracking
+
+Costs vary depending on workflow complexity, AI model, and execution time. GitHub Copilot CLI uses 1–2 premium requests per workflow execution with agentic processing. Track usage with:
+
+- `gh aw logs` — view runs and metrics
+- `gh aw audit <run-id>` — detailed token usage and costs
+- Your AI provider's usage portal
+
+Consider creating separate PAT/API keys per repository for granular cost tracking.
