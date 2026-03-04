@@ -2,6 +2,10 @@
 
 GitHub Agent Workflows (`gh aw`) let you define and run automated workflows powered by GitHub Actions. This document covers the key commands for setting up and running the `daily-repo-status` workflow.
 
+## Reference
+
+- [GitHub Agent Workflows CLI Setup](https://github.github.com/gh-aw/setup/cli/)
+
 ## Add a Workflow
 
 Use the add-wizard to interactively configure a new agent workflow from a template:
