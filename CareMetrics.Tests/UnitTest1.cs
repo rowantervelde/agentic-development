@@ -12,7 +12,7 @@ public class VektisServiceFixture
 public class VektisDataServiceTests : IClassFixture<VektisServiceFixture>
 {
     // 5 years × 20 municipalities × 7 care types × 5 age groups × 2 genders
-    private const int ExpectedMinimumMockRecords = 1000;
+    private const int ExpectedMinimumMockRecords = 6500;
 
     private readonly VektisDataService _svc;
 
