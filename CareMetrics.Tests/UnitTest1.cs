@@ -142,6 +142,7 @@ public class VektisDataServiceTests : IClassFixture<VektisServiceFixture>
         Assert.NotNull(result);
         Assert.Equal(careType, result.CareType);
         Assert.NotEmpty(result.Regions);
+        Assert.Equal(20, result.Regions.Count);
         Assert.Contains(result.Regions, r => r.Municipality == "Amsterdam");
     }
 }
