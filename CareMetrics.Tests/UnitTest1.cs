@@ -1,6 +1,5 @@
 using System.Linq;
 using CareMetrics.API.Services;
-using Xunit;
 
 namespace CareMetrics.Tests;
 
