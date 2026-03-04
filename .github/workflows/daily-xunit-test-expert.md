@@ -436,7 +436,6 @@ dotnet test --collect:"XPlat Code Coverage"
 **Files Involved:**
 - Test file: `[FILE_PATH]`
 - Source file(s): `[SOURCE_FILES]` (if identified)
-```
 
 ### 6. Update Processed Files Cache
 
