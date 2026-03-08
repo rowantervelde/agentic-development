@@ -10,22 +10,19 @@ namespace CareMetrics.Tests
 {
     public class UnitTests
     {
-        [Fact]
-        public void Truth_IsTrue()
+        private static string GetSolutionRoot()
         {
-            Assert.True(true);
+            var dir = new DirectoryInfo(AppContext.BaseDirectory);
+            while (dir != null && !File.Exists(Path.Combine(dir.FullName, "CareMetrics.slnx")))
+                dir = dir.Parent;
+            Assert.NotNull(dir);
+            return dir!.FullName;
         }
 
         [Fact]
         public void Parser_CanParseRealVektisFile()
         {
-            // find solution root
-            var dir = new DirectoryInfo(AppContext.BaseDirectory);
-            while (dir != null && !File.Exists(Path.Combine(dir.FullName, "CareMetrics.slnx")))
-                dir = dir.Parent;
-            Assert.NotNull(dir);
-            var solutionRoot = dir!.FullName;
-
+            var solutionRoot = GetSolutionRoot();
             var csvDir = Path.Combine(solutionRoot, "CareMetrics.API", "Data", "vektis", "postcode3");
             Assert.True(Directory.Exists(csvDir), $"dir should exist at {csvDir}");
 
@@ -34,44 +31,70 @@ namespace CareMetrics.Tests
 
             var targetFile = files.FirstOrDefault(f => f.Contains("2023")) ?? files[0];
 
-            // manually trace what the parser would do:
-            using var reader = new StreamReader(targetFile);
-            var headerLine = reader.ReadLine()!;
-            var headers = headerLine.Split(';').Select(h => h.Trim().ToLowerInvariant()).ToArray();
-            Assert.Equal(31, headers.Length);
-            Assert.Equal("geslacht", headers[0]);
-            Assert.Equal("aantal_verzekerdejaren", headers[4]);
-
-            var dataLine = reader.ReadLine()!;
-            var cols = dataLine.Split(';');
-            Assert.Equal(headers.Length, cols.Length);
-
-            // test decimal parsing of insured column
-            var insuredStr = cols[4].Trim();
-            var canParse = decimal.TryParse(insuredStr, System.Globalization.NumberStyles.Any,
-                System.Globalization.CultureInfo.InvariantCulture, out var insuredDec);
-            Assert.True(canParse, $"Failed to parse insured value: [{insuredStr}] (len={insuredStr.Length}, bytes={string.Join(",", System.Text.Encoding.UTF8.GetBytes(insuredStr).Select(b => b.ToString("X2")))})");
-            Assert.True((int)Math.Round(insuredDec) > 0, $"Insured={insuredDec}");
-
-            reader.Close();
-
-            // now run the actual parser
             var records = VektisCsvParser.ParseFile(targetFile);
+
             Assert.True(records.Count > 0,
-                $"Parser produced 0 records from {Path.GetFileName(targetFile)}. " +
-                $"Headers[4]=[{headers[4]}], insuredStr=[{insuredStr}], parsed={canParse}/{insuredDec}");
+                $"Parser produced 0 records from {Path.GetFileName(targetFile)}");
+            Assert.All(records, r =>
+            {
+                Assert.False(string.IsNullOrEmpty(r.CareType));
+                Assert.True(r.Year > 2000);
+                Assert.True(r.InsuredCount > 0);
+            });
+        }
+
+        [Theory]
+        [InlineData("2020")]
+        [InlineData("2021")]
+        [InlineData("2023")]
+        public void Parser_ExtractsCorrectYear_FromFilename(string yearStr)
+        {
+            var solutionRoot = GetSolutionRoot();
+            var csvDir = Path.Combine(solutionRoot, "CareMetrics.API", "Data", "vektis", "postcode3");
+
+            var targetFile = Directory.GetFiles(csvDir, $"*{yearStr}*.csv").FirstOrDefault();
+            Assert.NotNull(targetFile);
+
+            var records = VektisCsvParser.ParseFile(targetFile!);
+
+            Assert.NotEmpty(records);
+            Assert.All(records, r => Assert.Equal(int.Parse(yearStr), r.Year));
+        }
+
+        [Fact]
+        public void ParseDirectory_HappyPath_ReturnsRecords()
+        {
+            var solutionRoot = GetSolutionRoot();
+            var csvDir = Path.Combine(solutionRoot, "CareMetrics.API", "Data", "vektis", "postcode3");
+            Assert.True(Directory.Exists(csvDir), $"dir should exist at {csvDir}");
+
+            var records = VektisCsvParser.ParseDirectory(csvDir);
+
+            Assert.NotEmpty(records);
+            var years = records.Select(r => r.Year).Distinct().OrderBy(y => y).ToList();
+            Assert.True(years.Count >= 2, $"Expected records from multiple years, got: {string.Join(", ", years)}");
+        }
+
+        [Fact]
+        public void ParseDirectory_EmptyDirectory_ReturnsEmpty()
+        {
+            var tempDir = Directory.CreateTempSubdirectory("vektis_empty_");
+            try
+            {
+                var records = VektisCsvParser.ParseDirectory(tempDir.FullName);
+
+                Assert.Empty(records);
+            }
+            finally
+            {
+                Directory.Delete(tempDir.FullName, recursive: true);
+            }
         }
 
         [Fact]
         public void Service_CanLoadSampleCsv_FromConfiguration()
         {
-            // walk up from test output until we find the solution file
-            var dir = new DirectoryInfo(AppContext.BaseDirectory);
-            while (dir != null && !File.Exists(Path.Combine(dir.FullName, "CareMetrics.slnx")))
-                dir = dir.Parent;
-            Assert.NotNull(dir);
-            var solutionRoot = dir!.FullName;
-
+            var solutionRoot = GetSolutionRoot();
             var csvPath = Path.Combine(solutionRoot, "CareMetrics.API", "Data", "vektis");
             Assert.True(Directory.Exists(csvPath), $"downloaded vektis directory should exist at {csvPath}");
             // ensure at least one CSV is present (recursively – postcode3 + gemeente)
