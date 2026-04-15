@@ -36,7 +36,7 @@ public class VektisDataServiceTests : IClassFixture<VektisServiceFixture>
 
         Assert.NotEmpty(municipalities);
         Assert.Equal(municipalities.Distinct().Count(), municipalities.Count);
-        Assert.Equal(municipalities.OrderBy(x => x).ToList(), municipalities.ToList());
+        Assert.Equal(municipalities.Order().ToList(), municipalities.ToList());
         Assert.Contains("Amsterdam", municipalities);
     }
 
@@ -125,9 +125,7 @@ public class VektisDataServiceTests : IClassFixture<VektisServiceFixture>
 
         Assert.Equal(n, result.Count);
         Assert.All(result, h => Assert.True(h.Rank > 0));
-        // ranks are sequential 1..n
-        for (int i = 0; i < result.Count; i++)
-            Assert.Equal(i + 1, result[i].Rank);
+        Assert.Equal(Enumerable.Range(1, result.Count), result.Select(h => h.Rank));
     }
 
     // ── CompareRegions ────────────────────────────────────────────────
