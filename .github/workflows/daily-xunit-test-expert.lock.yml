@@ -29,13 +29,10 @@
 #     - shared/reporting.md
 #     - shared/safe-output-app.md
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"97a80116b4fdbd65bd8953f5c601d02c193f65c313f29f59eebf621cd99e0939","compiler_version":"v0.53.2"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"12362cce812826fbfa9ca49d57bfb6bf1a94f3c3437b22318bcea1ef15ca223b","compiler_version":"v0.53.2"}
 
 name: "Daily xUnit Test Quality Expert"
 "on":
-  schedule:
-  - cron: "22 10 * * *"
-    # Friendly format: daily (scattered)
   # skip-if-match: is:issue is:open in:title "[xunit-expert]" # Skip-if-match processed as search check in pre-activation job
   workflow_dispatch:
 
@@ -264,8 +261,6 @@ jobs:
       contents: read
       issues: read
       pull-requests: read
-    concurrency:
-      group: "gh-aw-copilot-${{ github.workflow }}"
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       GH_AW_ASSETS_ALLOWED_EXTS: ""

@@ -6,7 +6,6 @@ description: |
   and project recommendations.
 
 on:
-  schedule: never # disabled - use workflow_dispatch to run manually
   workflow_dispatch:
 
 permissions:

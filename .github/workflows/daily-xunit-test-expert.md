@@ -2,7 +2,6 @@
 name: Daily xUnit Test Quality Expert
 description: Daily expert that analyzes one C# test file and creates an issue with xUnit-based improvements
 on:
-  schedule: never # disabled - use workflow_dispatch to run manually
   workflow_dispatch:
   skip-if-match: 'is:issue is:open in:title "[xunit-expert]"'
 
