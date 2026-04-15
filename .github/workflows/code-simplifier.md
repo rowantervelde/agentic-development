@@ -2,7 +2,7 @@
 name: Code Simplifier
 description: Analyzes recently modified C# code and creates pull requests with simplifications that improve clarity, consistency, and maintainability while preserving functionality
 on:
-  schedule: daily
+  schedule: never
   skip-if-match: 'is:pr is:open in:title "[code-simplifier]"'
 
 permissions:
